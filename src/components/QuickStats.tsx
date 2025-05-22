@@ -1,12 +1,15 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export const QuickStats = () => {
+  const { formatAmount } = useCurrency();
+  
   const stats = [
     {
       title: "Total Income",
-      value: "$12,450",
+      value: 12450,
       change: "+12.5%",
       trend: "up",
       icon: TrendingUp,
@@ -14,7 +17,7 @@ export const QuickStats = () => {
     },
     {
       title: "Total Expenses",
-      value: "$8,320",
+      value: 8320,
       change: "-5.2%",
       trend: "down",
       icon: TrendingDown,
@@ -22,7 +25,7 @@ export const QuickStats = () => {
     },
     {
       title: "Net Profit",
-      value: "$4,130",
+      value: 4130,
       change: "+8.1%",
       trend: "up",
       icon: DollarSign,
@@ -34,7 +37,8 @@ export const QuickStats = () => {
       change: "+3 from last month",
       trend: "up",
       icon: Calendar,
-      color: "purple"
+      color: "purple",
+      isText: true
     }
   ];
 
@@ -50,7 +54,9 @@ export const QuickStats = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stat.isText ? stat.value : formatAmount(stat.value as number)}
+                </p>
                 <p className={`text-sm mt-1 flex items-center ${
                   stat.trend === 'up' ? 'text-green-600' : 'text-red-600'
                 }`}>

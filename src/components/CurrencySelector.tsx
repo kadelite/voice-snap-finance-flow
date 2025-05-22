@@ -14,7 +14,8 @@ import {
   PoundSterling, 
   JapaneseYen, 
   IndianRupee,
-  SwissFranc
+  SwissFranc,
+  CircleDollarSign
 } from 'lucide-react';
 
 export const CurrencySelector = () => {
@@ -37,6 +38,8 @@ export const CurrencySelector = () => {
         return <IndianRupee className="w-4 h-4" />;
       case 'CHF':
         return <SwissFranc className="w-4 h-4" />;
+      case 'NGN':
+        return <CircleDollarSign className="w-4 h-4" />;
       default:
         return <DollarSign className="w-4 h-4" />;
     }

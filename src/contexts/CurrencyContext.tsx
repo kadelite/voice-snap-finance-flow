@@ -17,6 +17,7 @@ export const CURRENCIES: CurrencyOption[] = [
   { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
   { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
   { code: 'CHF', symbol: 'Fr', name: 'Swiss Franc' },
+  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
 ];
 
 // Context type definition

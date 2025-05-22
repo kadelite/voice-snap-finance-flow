@@ -3,8 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Receipt, ShoppingCart, Coffee, Car, Home, Briefcase } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export const TransactionList = () => {
+  const { formatAmount } = useCurrency();
+  
   const transactions = [
     {
       id: 1,
@@ -103,7 +106,7 @@ export const TransactionList = () => {
                   <p className={`font-semibold ${
                     transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+                    {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
                   </p>
                 </div>
               </div>

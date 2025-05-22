@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ interface AddTransactionModalProps {
 }
 
 export const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProps) => {
+  const { selectedCurrency, formatAmount } = useCurrency();
+  
   const [formData, setFormData] = useState({
     type: "",
     amount: "",
@@ -41,10 +44,10 @@ export const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProp
 
     toast({
       title: "Transaction Added Successfully",
-      description: `${formData.type === 'income' ? '+' : '-'}$${formData.amount} - ${formData.description}`,
+      description: `${formData.type === 'income' ? '+' : '-'}${selectedCurrency.symbol}${formData.amount} - ${formData.description}`,
     });
 
-    console.log("Adding transaction:", formData);
+    console.log("Adding transaction:", formData, "Currency:", selectedCurrency.code);
     
     // Reset form
     setFormData({
@@ -84,12 +87,12 @@ export const AddTransactionModal = ({ isOpen, onClose }: AddTransactionModalProp
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount *</Label>
+              <Label htmlFor="amount">Amount ({selectedCurrency.symbol}) *</Label>
               <Input
                 id="amount"
                 type="number"
                 step="0.01"
-                placeholder="0.00"
+                placeholder={`0.00 ${selectedCurrency.symbol}`}
                 value={formData.amount}
                 onChange={(e) => setFormData({...formData, amount: e.target.value})}
               />

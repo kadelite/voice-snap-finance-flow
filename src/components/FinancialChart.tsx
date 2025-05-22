@@ -2,8 +2,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export const FinancialChart = () => {
+  const { selectedCurrency, formatAmount } = useCurrency();
+  
   const data = [
     { month: 'Jan', income: 4000, expenses: 2400, profit: 1600 },
     { month: 'Feb', income: 3000, expenses: 1398, profit: 1602 },
@@ -12,6 +15,23 @@ export const FinancialChart = () => {
     { month: 'May', income: 1890, expenses: 4800, profit: -2910 },
     { month: 'Jun', income: 2390, expenses: 3800, profit: -1410 },
   ];
+
+  // Custom tooltip formatter that uses the selected currency
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-200 rounded-md shadow-md">
+          <p className="text-gray-600 font-medium">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={`item-${index}`} style={{ color: entry.color }}>
+              {entry.name}: {formatAmount(entry.value)}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <Card className="hover:shadow-lg transition-all duration-200">
@@ -26,15 +46,11 @@ export const FinancialChart = () => {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="month" stroke="#666" />
-            <YAxis stroke="#666" />
-            <Tooltip 
-              contentStyle={{
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              }}
+            <YAxis 
+              stroke="#666" 
+              tickFormatter={(value) => `${selectedCurrency.symbol}${value}`}
             />
+            <Tooltip content={<CustomTooltip />} />
             <Line 
               type="monotone" 
               dataKey="income" 

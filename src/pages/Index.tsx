@@ -9,6 +9,7 @@ import { TransactionList } from "@/components/TransactionList";
 import { FinancialChart } from "@/components/FinancialChart";
 import { QuickStats } from "@/components/QuickStats";
 import { AddTransactionModal } from "@/components/AddTransactionModal";
+import { CurrencySelector } from "@/components/CurrencySelector";
 
 const Index = () => {
   const [showVoiceInput, setShowVoiceInput] = useState(false);
@@ -32,6 +33,8 @@ const Index = () => {
             </div>
             
             <div className="flex items-center space-x-3">
+              <CurrencySelector />
+              
               <Button
                 onClick={() => setShowVoiceInput(true)}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transition-all duration-200 hover:scale-105"

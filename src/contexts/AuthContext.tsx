@@ -7,6 +7,11 @@ export interface User {
   email: string;
   name: string;
   createdAt: Date;
+  password?: string; // Password field needed for storage but marked optional for type safety
+}
+
+interface StoredUser extends Omit<User, 'createdAt'> {
+  createdAt: string; // Store date as string in localStorage
 }
 
 interface AuthContextType {
@@ -27,18 +32,71 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+// Helper function to safely get users from localStorage
+const getStoredUsers = (): StoredUser[] => {
+  try {
+    const usersString = localStorage.getItem('users');
+    if (usersString) {
+      return JSON.parse(usersString);
+    }
+  } catch (error) {
+    console.error('Failed to parse stored users:', error);
+  }
+  return [];
+};
+
+// Helper function to safely store users in localStorage
+const storeUsers = (users: StoredUser[]) => {
+  try {
+    localStorage.setItem('users', JSON.stringify(users));
+  } catch (error) {
+    console.error('Failed to store users:', error);
+  }
+};
+
+// Convert a User object to a StoredUser object for localStorage
+const userToStoredUser = (user: User): StoredUser => ({
+  ...user,
+  createdAt: user.createdAt.toISOString(),
+});
+
+// Convert a StoredUser object to a User object for application use
+const storedUserToUser = (storedUser: StoredUser): User => ({
+  ...storedUser,
+  createdAt: new Date(storedUser.createdAt),
+});
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Initialize with demo user if it doesn't exist
   useEffect(() => {
+    const users = getStoredUsers();
+    
+    // Add demo user if not already in the users list
+    const demoUserExists = users.some(u => u.email === 'demo@example.com');
+    
+    if (!demoUserExists) {
+      const demoUser: StoredUser = {
+        id: '1',
+        email: 'demo@example.com',
+        name: 'Demo User',
+        password: 'password',
+        createdAt: new Date().toISOString(),
+      };
+      storeUsers([...users, demoUser]);
+    }
+
     // Check if user is logged in from localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        parsedUser.createdAt = new Date(parsedUser.createdAt);
-        setUser(parsedUser);
+        setUser({
+          ...parsedUser,
+          createdAt: new Date(parsedUser.createdAt)
+        });
       } catch (error) {
         console.error('Failed to parse stored user:', error);
         localStorage.removeItem('user');
@@ -49,24 +107,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string) => {
     try {
-      // This is a mock login - in a real app, you'd call an API
       setIsLoading(true);
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock validation - in production, this would be server-side
-      if (email === 'demo@example.com' && password === 'password') {
-        const user = {
-          id: '1',
-          email,
-          name: 'Demo User',
-          createdAt: new Date(),
+      // Get all users from localStorage
+      const users = getStoredUsers();
+      
+      // Find user with matching email and password
+      const matchedUser = users.find(u => u.email === email && u.password === password);
+      
+      if (matchedUser) {
+        // Convert to User object and remove password
+        const loggedInUser: User = {
+          id: matchedUser.id,
+          email: matchedUser.email,
+          name: matchedUser.name,
+          createdAt: new Date(matchedUser.createdAt),
         };
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
+        
+        setUser(loggedInUser);
+        // Store user without password in localStorage
+        localStorage.setItem('user', JSON.stringify(loggedInUser));
+        
         toast({
           title: "Login successful",
-          description: "Welcome back!",
+          description: `Welcome back, ${loggedInUser.name}!`,
         });
         return;
       }
@@ -86,25 +152,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signup = async (email: string, password: string, name: string) => {
     try {
-      // This is a mock signup - in a real app, you'd call an API
       setIsLoading(true);
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock validation - in production, this would be server-side
+      // Validation
       if (!email || !password || !name) {
         throw new Error('All fields are required');
       }
       
-      const user = {
+      // Get existing users
+      const users = getStoredUsers();
+      
+      // Check if user with this email already exists
+      if (users.some(u => u.email === email)) {
+        throw new Error('A user with this email already exists');
+      }
+      
+      const newUser: User = {
         id: Math.random().toString(36).slice(2, 11),
         email,
         name,
+        password, // Store password for login validation
         createdAt: new Date(),
       };
       
-      setUser(user);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Add user to localStorage
+      const storedUser = userToStoredUser(newUser);
+      storeUsers([...users, storedUser]);
+      
+      // Store user in current session without password
+      const { password: _, ...userWithoutPassword } = newUser;
+      setUser(userWithoutPassword);
+      localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+      
       toast({
         title: "Account created",
         description: "Welcome to FinanceTracker!",

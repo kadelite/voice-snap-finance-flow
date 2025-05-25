@@ -53,21 +53,32 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   }, [user, form]);
 
   const onSubmit = async (values: ProfileFormValues) => {
+    if (isSubmitting) return; // Prevent double submission
+    
     setIsSubmitting(true);
     try {
       await updateProfile(values.name);
       onClose();
     } catch (error) {
       console.error('Profile update failed:', error);
+      // Form will stay open so user can try again
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleCancel = () => {
+    if (isSubmitting) {
+      setIsSubmitting(false); // Force reset the submitting state
+    }
+    form.reset(); // Reset form to original values
+    onClose();
+  };
+
   if (!user) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Your Profile</DialogTitle>
@@ -104,7 +115,11 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your name" {...field} />
+                    <Input 
+                      placeholder="Enter your name" 
+                      {...field}
+                      disabled={isSubmitting}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -115,12 +130,15 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting}
+                onClick={handleCancel}
+                disabled={false} // Cancel should always be available
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || !form.formState.isValid}
+              >
                 {isSubmitting ? 'Updating...' : 'Update Profile'}
               </Button>
             </div>
